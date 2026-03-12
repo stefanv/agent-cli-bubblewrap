@@ -1,0 +1,56 @@
+#!/bin/bash
+# Modified from https://patrickmccanna.net/a-better-way-to-limit-claude-code-and-other-coding-agents-access-to-secrets/
+
+ALLOW_RW=(
+    "$PWD"
+)
+
+ALLOW_RO=(
+    /usr
+    /lib
+    /lib64
+    /bin
+    /etc/resolv.conf
+    /etc/hosts
+    /etc/ssl
+    /etc/crypto-policies
+    /etc/pki
+    /etc/passwd
+    /etc/group
+    "$HOME/.gitconfig"
+    "$HOME/.local"
+)
+
+# List of files or directories to be masked with /dev/null
+BANNED=(
+    ".env"
+    ".env.local"
+    ".env.production"
+)
+
+ALLOW_RW_ARGS=()
+for item in "${ALLOW_RW[@]}"; do
+    ALLOW_RW_ARGS+=(--bind "$item" "$item")
+done
+
+ALLOW_RO_ARGS=()
+for item in "${ALLOW_RO[@]}"; do
+    ALLOW_RO_ARGS+=(--ro-bind "$item" "$item")
+done
+
+BANNED_ARGS=()
+for item in "${BANNED[@]}"; do
+    [[ -e "$PWD/$item" ]] && BANNED_ARGS+=(--ro-bind /dev/null "$PWD/$item")
+done
+
+exec bwrap \
+     "${ALLOW_RW_ARGS[@]}" \
+     "${ALLOW_RO_ARGS[@]}" \
+     --tmpfs /tmp \
+     --proc /proc \
+     --dev /dev \
+     --share-net \
+     --unshare-pid \
+     --die-with-parent \
+     "${BANNED_ARGS[@]}" \
+     "$@"
