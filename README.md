@@ -9,7 +9,21 @@ The end-user-scripts are:
 - `claude-bubble`
 - `gemini-bubble`
 
-Each launches the respective agent CLI in a sandbox with YOLO mode (auto-approve all actions, no confirmation prompts).
+## Usage
+
+```
+claude-bubble [-y] [-- <claude-options>]
+gemini-bubble [-y] [-- <gemini-options>]
+```
+
+By default, each launches the agent CLI in its normal (approval-required) mode.
+Pass `-y` to enable yolo mode (auto-approve all actions, no confirmation prompts).
+Regular CLI options follow after `--`:
+
+```
+claude-bubble -y
+gemini-bubble -y -- --model gemini-2.0-flash
+```
 
 Internally, the scripts call `bubble-run`, which sets up bubblewrap. Default sandbox permissions:
 

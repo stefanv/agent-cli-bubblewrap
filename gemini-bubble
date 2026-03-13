@@ -1,5 +1,12 @@
 #!/bin/bash
 
+YOLO_ARGS=()
+if [[ "$1" == "-y" ]]; then
+    YOLO_ARGS=(--approval-mode=yolo)
+    shift
+fi
+[[ "$1" == "--" ]] && shift
+
 ALLOW_RW=(
     "$HOME/.gemini"
 )
@@ -31,4 +38,4 @@ exec "$(dirname "$0")/bubble-run" \
      "${ALLOW_RO_ARGS[@]}" \
      "${BANNED_ARGS[@]}" \
      -- \
-     "$(command -v gemini)" --approval-mode=yolo "$@"
+     "$(command -v gemini)" "${YOLO_ARGS[@]}" "$@"

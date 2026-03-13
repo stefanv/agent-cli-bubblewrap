@@ -1,5 +1,12 @@
 #!/bin/bash
 
+YOLO_ARGS=()
+if [[ "$1" == "-y" ]]; then
+    YOLO_ARGS=(--dangerously-skip-permissions)
+    shift
+fi
+[[ "$1" == "--" ]] && shift
+
 ALLOW_RW=(
     "$HOME/.claude"
     "$HOME/.claude.json"
@@ -31,4 +38,4 @@ exec "$(dirname "$0")/bubble-run" \
      "${ALLOW_RO_ARGS[@]}" \
      "${BANNED_ARGS[@]}" \
      -- \
-     "$(command -v claude)" --dangerously-skip-permissions "$@"
+     "$(command -v claude)" "${YOLO_ARGS[@]}" "$@"
