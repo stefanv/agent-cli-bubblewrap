@@ -19,6 +19,10 @@ ALLOW_RO=(
     /etc/group
     "$HOME/.gitconfig"
     "$HOME/.local"
+    "$HOME/src/dotfiles"
+    "$HOME/.npm"
+    "$HOME/.npm-packages"
+    "$HOME/.bun"
 )
 
 # List of files or directories to be masked with /dev/null
