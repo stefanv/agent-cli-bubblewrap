@@ -35,13 +35,27 @@ Internally, the scripts call `bubble-run`, which sets up bubblewrap. Default san
 
 ## Configuration
 
-The scripts all contain the follow variables, that can be customized to your need.
-By default, we give access to the current directory, minus `.env`.
-We also give read access to the files needed by each agent to function.
+The scripts contain the following variables, which determine access rights:
 
 - `ALLOW_RO`: allow read-only access to these files/directories
 - `ALLOW_RW`: allow read-write access to these files/directories
 - `BANNED`: explicitly deny access to these files, even if covered by `ALLOW_RO`/`ALLOW_RW`
+
+By default, we give full access to the current directory minus `.env`,
+as well as read access to files needed by each agent to function.
+
+You can extend these ACL lists by setting `AGENT_BUBBLE_*` environment
+variables (e.g. in your `~/.bashrc`):
+
+```sh
+export AGENT_BUBBLE_RO="/home/user/.authinfo.gpg:/run/user/1000/gnupg"
+export AGENT_BUBBLE_RW="/home/user/.myagent"
+export AGENT_BUBBLE_BANNED=".secret"
+```
+
+Each variable is a colon-separated list of paths. Of course, you could
+also just modify the `ALLOW_RO`, `ALLOW_RW`, and `BANNED` variables in
+each script directly.
 
 ## Requirements
 

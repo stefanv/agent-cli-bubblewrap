@@ -27,6 +27,15 @@ ALLOW_RO=(
     "$HOME/.bun"
 )
 
+if [[ -n "$AGENT_BUBBLE_RW" ]]; then
+    IFS=':' read -ra _extra <<< "$AGENT_BUBBLE_RW"
+    ALLOW_RW+=("${_extra[@]}")
+fi
+if [[ -n "$AGENT_BUBBLE_RO" ]]; then
+    IFS=':' read -ra _extra <<< "$AGENT_BUBBLE_RO"
+    ALLOW_RO+=("${_extra[@]}")
+fi
+
 # List of files or directories to be masked with /dev/null
 BANNED=(
     ".env"
@@ -43,6 +52,11 @@ ALLOW_RO_ARGS=()
 for item in "${ALLOW_RO[@]}"; do
     ALLOW_RO_ARGS+=(--ro-bind "$item" "$item")
 done
+
+if [[ -n "$AGENT_BUBBLE_BANNED" ]]; then
+    IFS=':' read -ra _extra <<< "$AGENT_BUBBLE_BANNED"
+    BANNED+=("${_extra[@]}")
+fi
 
 BANNED_ARGS=()
 for item in "${BANNED[@]}"; do
