@@ -11,12 +11,14 @@ ALLOW_RO=(
     /lib64
     /bin
     /etc/resolv.conf
+    /etc/nsswitch.conf
     /etc/hosts
     /etc/ssl
     /etc/crypto-policies
     /etc/pki
     /etc/passwd
     /etc/group
+    /run/systemd/resolve
     "$HOME/.gitconfig"
     "$HOME/.local"
     "$HOME/src/dotfiles"
