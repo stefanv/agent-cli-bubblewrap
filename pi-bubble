@@ -1,0 +1,35 @@
+#!/bin/bash
+
+[[ "$1" == "--" ]] && shift
+
+ALLOW_RW=(
+  "$HOME/.pi"
+)
+
+ALLOW_RO=(
+)
+
+BANNED=(
+)
+
+ALLOW_RW_ARGS=()
+for item in "${ALLOW_RW[@]}"; do
+    ALLOW_RW_ARGS+=(--bind "$item" "$item")
+done
+
+ALLOW_RO_ARGS=()
+for item in "${ALLOW_RO[@]}"; do
+    ALLOW_RO_ARGS+=(--ro-bind "$item" "$item")
+done
+
+BANNED_ARGS=()
+for item in "${BANNED[@]}"; do
+    BANNED_ARGS+=(--ro-bind /dev/null "$PWD/$item")
+done
+
+exec "$(dirname "$0")/bubble-run" \
+     "${ALLOW_RW_ARGS[@]}" \
+     "${ALLOW_RO_ARGS[@]}" \
+     "${BANNED_ARGS[@]}" \
+     -- \
+     "$(command -v pi)" "$@"
