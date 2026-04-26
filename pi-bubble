@@ -32,4 +32,4 @@ exec "$(dirname "$0")/bubble-run" \
      "${ALLOW_RO_ARGS[@]}" \
      "${BANNED_ARGS[@]}" \
      -- \
-     "$(command -v pi)" "$@"
+     "$(command -v pi)" --offline "$@"
