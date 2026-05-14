@@ -3,6 +3,7 @@
 
 ALLOW_RW=(
     "$PWD"
+    "$HOME/.npm"
 )
 
 ALLOW_RO=(
@@ -23,7 +24,6 @@ ALLOW_RO=(
     "$HOME/.local"
     "$HOME/src/dotfiles"
     "$HOME/.npmrc"
-    "$HOME/.npm"
     "$HOME/.npm-packages"
     "$HOME/.bun"
 )
