@@ -4,6 +4,7 @@
 
 ALLOW_RW=(
   "$HOME/.pi"
+  "$HOME/.agents"
 )
 
 ALLOW_RO=(
