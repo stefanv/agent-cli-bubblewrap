@@ -65,6 +65,34 @@ for item in "${BANNED[@]}"; do
     [[ -e "$PWD/$item" ]] && BANNED_ARGS+=(--ro-bind /dev/null "$PWD/$item")
 done
 
+# Intercept and translate shorthand flags (-y, -c) for the command
+PROCESSED_ARGS=()
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --)
+            shift
+            CMD="$1"
+            shift
+            CMD_ARGS=()
+            while [[ $# -gt 0 ]]; do
+                case "$1" in
+                    -y) [[ -n "$AGENT_YOLO_FLAG" ]] && CMD_ARGS+=("$AGENT_YOLO_FLAG") || CMD_ARGS+=("-y") ;;
+                    -c) [[ -n "$AGENT_COMMIT_FLAG" ]] && CMD_ARGS+=("$AGENT_COMMIT_FLAG") || CMD_ARGS+=("-c") ;;
+                    *) CMD_ARGS+=("$1") ;;
+                esac
+                shift
+            done
+            PROCESSED_ARGS+=(-- "$CMD" "${CMD_ARGS[@]}")
+            break
+            ;;
+        *)
+            PROCESSED_ARGS+=("$1")
+            shift
+            ;;
+    esac
+done
+set -- "${PROCESSED_ARGS[@]}"
+
 exec bwrap \
      "${ALLOW_RW_ARGS[@]}" \
      "${ALLOW_RO_ARGS[@]}" \

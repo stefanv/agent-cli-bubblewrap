@@ -1,25 +1,6 @@
 #!/bin/bash
 
-YOLO_ARGS=()
-ARGS=()
-while [[ $# -gt 0 ]]; do
-    case "$1" in
-        -y)
-            YOLO_ARGS=(--dangerously-skip-permissions)
-            shift
-            ;;
-        --)
-            shift
-            ARGS+=("$@")
-            break
-            ;;
-        *)
-            ARGS+=("$1")
-            shift
-            ;;
-    esac
-done
-set -- "${ARGS[@]}"
+export AGENT_YOLO_FLAG="--dangerously-skip-permissions"
 
 ALLOW_RW=(
     "$HOME/.claude"
@@ -52,4 +33,4 @@ exec "$(dirname "$0")/bubble-run" \
      "${ALLOW_RO_ARGS[@]}" \
      "${BANNED_ARGS[@]}" \
      -- \
-     "$(command -v claude)" "${YOLO_ARGS[@]}" "$@"
+     "$(command -v claude)" "$@"
