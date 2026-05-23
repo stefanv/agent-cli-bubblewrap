@@ -1,11 +1,25 @@
 #!/bin/bash
 
 YOLO_ARGS=()
-if [[ "$1" == "-y" ]]; then
-    YOLO_ARGS=(--dangerously-skip-permissions)
-    shift
-fi
-[[ "$1" == "--" ]] && shift
+ARGS=()
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -y)
+            YOLO_ARGS=(--dangerously-skip-permissions)
+            shift
+            ;;
+        --)
+            shift
+            ARGS+=("$@")
+            break
+            ;;
+        *)
+            ARGS+=("$1")
+            shift
+            ;;
+    esac
+done
+set -- "${ARGS[@]}"
 
 ALLOW_RW=(
     "$HOME/.claude"
