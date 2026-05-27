@@ -1,6 +1,53 @@
 #!/bin/bash
 # Modified from https://patrickmccanna.net/a-better-way-to-limit-claude-code-and-other-coding-agents-access-to-secrets/
 
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+    if [[ -n "${AGENT_NAME:-}" ]]; then
+        cat <<EOF
+Usage: $AGENT_NAME [bwrap-options] [-h] [-- <$AGENT_CLI options>]
+
+Run $AGENT_CLI inside a bubblewrap sandbox.
+
+Flags (place before --):
+  -y    YOLO mode (maps to: $AGENT_YOLO_FLAG)
+  -c    Continue the most recent session (maps to: $AGENT_CONTINUE_FLAG)
+  -h    Show this help
+
+Any bwrap flags (e.g. --unsetenv, --bind) may also be placed before --.
+Everything after -- is passed as-is to $AGENT_CLI.
+
+Environment variables (colon-separated paths, appended to defaults):
+  AGENT_BUBBLE_RW      Extra read-write paths
+  AGENT_BUBBLE_RO      Extra read-only paths
+  AGENT_BUBBLE_BANNED  Extra paths to block
+
+Environment variables are inherited from the parent process. To hide
+specific variables from the sandbox, pass bwrap flags via bubble-run:
+  bubble-run --unsetenv SECRET_TOKEN -- $AGENT_CLI
+  bubble-run --clearenv --setenv PATH "\$PATH" -- $AGENT_CLI
+EOF
+    else
+        cat <<EOF
+Usage: bubble-run [bwrap-options] -- <command> [args]
+
+Low-level bwrap wrapper. Prefer claude-bubble, gemini-bubble, etc. for agent use.
+
+Default sandbox:
+  Read-write: \$PWD, \$HOME/.npm
+  Read-only:  /usr, /lib, /bin, /etc/ssl, ~/.gitconfig, ~/.local, ...
+  Blocked:    .env, .env.local, .env.production
+  Network:    shared (--share-net)
+  PID ns:     isolated (--unshare-pid)
+
+Environment variables are inherited from the parent process. To hide
+specific variables from the sandbox, pass bwrap flags before --:
+  bubble-run --unsetenv SECRET_TOKEN -- <command>
+  bubble-run --clearenv --setenv PATH "\$PATH" -- <command>
+EOF
+    fi
+    exit 0
+fi
+
 ALLOW_RW=(
     "$PWD"
     "$HOME/.npm"
@@ -65,33 +112,28 @@ for item in "${BANNED[@]}"; do
     [[ -e "$PWD/$item" ]] && BANNED_ARGS+=(--ro-bind /dev/null "$PWD/$item")
 done
 
-# Intercept and translate shorthand flags (-y, -c) for the command
-PROCESSED_ARGS=()
+BWRAP_PASSTHROUGH=()
+CMD_FLAGS=()
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --)
-            shift
-            CMD="$1"
-            shift
-            CMD_ARGS=()
-            while [[ $# -gt 0 ]]; do
-                case "$1" in
-                    -y) [[ -n "$AGENT_YOLO_FLAG" ]] && CMD_ARGS+=("$AGENT_YOLO_FLAG") || CMD_ARGS+=("-y") ;;
-                    -c) [[ -n "$AGENT_COMMIT_FLAG" ]] && CMD_ARGS+=("$AGENT_COMMIT_FLAG") || CMD_ARGS+=("-c") ;;
-                    *) CMD_ARGS+=("$1") ;;
-                esac
-                shift
-            done
-            PROCESSED_ARGS+=(-- "$CMD" "${CMD_ARGS[@]}")
-            break
-            ;;
-        *)
-            PROCESSED_ARGS+=("$1")
-            shift
-            ;;
+        -y) if [[ -n "${AGENT_YOLO_FLAG:-}" ]]; then
+                CMD_FLAGS+=("$AGENT_YOLO_FLAG")
+            elif [[ -z "${AGENT_YOLO_FLAG+x}" ]]; then
+                CMD_FLAGS+=("-y")
+            fi
+            shift ;;
+        -c) if [[ -n "$AGENT_CONTINUE_FLAG" ]]; then
+                read -ra _cf <<< "$AGENT_CONTINUE_FLAG"
+                CMD_FLAGS+=("${_cf[@]}")
+            else
+                CMD_FLAGS+=("-c")
+            fi
+            shift ;;
+        --) shift; break ;;
+        *) BWRAP_PASSTHROUGH+=("$1"); shift ;;
     esac
 done
-set -- "${PROCESSED_ARGS[@]}"
+CMD="$1"; shift
 
 exec bwrap \
      "${ALLOW_RW_ARGS[@]}" \
@@ -103,4 +145,6 @@ exec bwrap \
      --unshare-pid \
      --die-with-parent \
      "${BANNED_ARGS[@]}" \
-     "$@"
+     "${BWRAP_PASSTHROUGH[@]}" \
+     -- \
+     "$CMD" "${CMD_FLAGS[@]}" "$@"

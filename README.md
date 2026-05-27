@@ -12,16 +12,23 @@ The end-user-scripts are:
 ## Usage
 
 ```
-claude-bubble [-y] [-- <claude-options>]
-gemini-bubble [-y] [-- <gemini-options>]
+claude-bubble [bwrap-options] [-y|c|h] [-- <claude-options>]
+gemini-bubble [bwrap-options] [-y|c|h] [-- <gemini-options>]
 ```
 
-By default, each launches the agent CLI in its normal (approval-required) mode.
-Pass `-y` to enable yolo mode (auto-approve all actions, no confirmation prompts).
-Regular CLI options follow after `--`:
+- `-y`: YOLO mode; auto-approve all actions, no confirmation prompts.
+- `-c`: Continue; resume the most recent conversation/session.
+- `-h`: Show help.
+
+Any [bwrap](https://github.com/containers/bubblewrap) flags placed before `--` are forwarded directly to bwrap.
+
+Examples:
 
 ```
 claude-bubble -y
+claude-bubble -c
+claude-bubble -y -c
+claude-bubble --unsetenv GITHUB_TOKEN -y
 gemini-bubble -y -- --model gemini-2.0-flash
 ```
 
@@ -29,9 +36,11 @@ Internally, the scripts call `bubble-run`, which sets up bubblewrap. Default san
 
 - Read-only access to system paths (`/usr`, `/lib`, `/etc/ssl`, etc.)
 - Read-write access to the current directory
-- A tmpfs `/tmp` and isolated PID namespace (`--unshare-pid`)
+- All environment variables passed through (see below on how to prevent that)
+- A tmpfs `/tmp` and isolated PID namespace (`--unshare-pid`).
+  Note that this means you cannot run from within your local `/tmp` :)
 - Network access (`--share-net`)
-- No access to .env
+- No access to `.env.*`
 
 ## Configuration
 
@@ -48,14 +57,29 @@ You can extend these ACL lists by setting `AGENT_BUBBLE_*` environment
 variables (e.g. in your `~/.bashrc`):
 
 ```sh
-export AGENT_BUBBLE_RO="/home/user/.authinfo.gpg:/run/user/1000/gnupg"
-export AGENT_BUBBLE_RW="/home/user/.myagent"
+export AGENT_BUBBLE_RO="$HOME/.authinfo.gpg:/run/user/1000/gnupg"
+export AGENT_BUBBLE_RW="$HOME/.myagent"
 export AGENT_BUBBLE_BANNED=".secret"
 ```
 
 Each variable is a colon-separated list of paths. Of course, you could
 also just modify the `ALLOW_RO`, `ALLOW_RW`, and `BANNED` variables in
 each script directly.
+
+### Hiding environment variables
+
+All environment variables are inherited by the sandbox. To hide specific
+ones, pass `--unsetenv` before `--`:
+
+```sh
+claude-bubble --unsetenv GITHUB_TOKEN --unsetenv AWS_SECRET_ACCESS_KEY
+```
+
+To start with a clean environment and allow only specific variables through:
+
+```sh
+claude-bubble --clearenv --setenv PATH "$PATH" --setenv HOME "$HOME"
+```
 
 ## Requirements
 

@@ -1,5 +1,19 @@
 #!/bin/bash
 
+export AGENT_NAME="pi-bubble"
+export AGENT_CLI="pi"
+export AGENT_YOLO_FLAG=""
+export AGENT_CONTINUE_FLAG="--continue"
+
+EXTRA_BWRAP_ARGS=()
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -h|--help) exec "$(dirname "$0")/bubble-run" --help ;;
+        --) shift; break ;;
+        *) EXTRA_BWRAP_ARGS+=("$1"); shift ;;
+    esac
+done
+
 ALLOW_RW=(
   "$HOME/.pi"
   "$HOME/.agents"

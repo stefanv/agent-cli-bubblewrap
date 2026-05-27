@@ -1,6 +1,18 @@
 #!/bin/bash
 
+export AGENT_NAME="gemini-bubble"
+export AGENT_CLI="gemini"
 export AGENT_YOLO_FLAG="--approval-mode=yolo"
+export AGENT_CONTINUE_FLAG="--resume latest"
+
+EXTRA_BWRAP_ARGS=()
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -h|--help) exec "$(dirname "$0")/bubble-run" --help ;;
+        --) shift; break ;;
+        *) EXTRA_BWRAP_ARGS+=("$1"); shift ;;
+    esac
+done
 
 ALLOW_RW=(
     "$HOME/.gemini"
@@ -32,5 +44,6 @@ exec "$(dirname "$0")/bubble-run" \
      "${ALLOW_RW_ARGS[@]}" \
      "${ALLOW_RO_ARGS[@]}" \
      "${BANNED_ARGS[@]}" \
+     "${EXTRA_BWRAP_ARGS[@]}" \
      -- \
      "$(command -v gemini)" "$@"
