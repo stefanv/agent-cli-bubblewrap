@@ -8,6 +8,7 @@ The end-user-scripts are:
 
 - `claude-bubble`
 - `gemini-bubble`
+- `pi-bubble`
 
 ## Usage
 
