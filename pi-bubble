@@ -44,5 +44,6 @@ exec "$(dirname "$0")/bubble-run" \
      "${ALLOW_RW_ARGS[@]}" \
      "${ALLOW_RO_ARGS[@]}" \
      "${BANNED_ARGS[@]}" \
+     "${EXTRA_BWRAP_ARGS[@]}" \
      -- \
      "$(command -v pi)" --offline "$@"
