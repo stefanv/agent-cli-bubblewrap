@@ -59,6 +59,7 @@ ALLOW_RO=(
     /lib64
     /bin
     /usr/libexec
+    /etc/alternatives
     /etc/resolv.conf
     /etc/nsswitch.conf
     /etc/hosts
