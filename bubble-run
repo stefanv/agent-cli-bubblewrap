@@ -48,6 +48,14 @@ EOF
     exit 0
 fi
 
+case "$PWD" in
+    /tmp|/tmp/*)
+        echo "${AGENT_NAME:-$(basename "$0")}: refusing to run from '$PWD'." >&2
+        echo "The sandbox rebinds /tmp, so your current directory would appear empty inside it. Run from a directory outside /tmp." >&2
+        exit 1
+        ;;
+esac
+
 ALLOW_RW=(
     "$PWD"
     "$HOME/.npm"
