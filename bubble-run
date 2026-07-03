@@ -59,6 +59,9 @@ esac
 ALLOW_RW=(
     "$PWD"
     "$HOME/.npm"
+    "$HOME/.bun"
+    "$HOME/.local/share/pnpm"
+    "$HOME/.npm-packages"
 )
 
 ALLOW_RO=(
@@ -81,8 +84,6 @@ ALLOW_RO=(
     "$HOME/.local"
     "$HOME/src/dotfiles"
     "$HOME/.npmrc"
-    "$HOME/.npm-packages"
-    "$HOME/.bun"
 )
 
 if [[ -n "$AGENT_BUBBLE_RW" ]]; then

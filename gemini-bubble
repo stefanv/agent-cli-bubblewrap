@@ -19,7 +19,6 @@ ALLOW_RW=(
 )
 
 ALLOW_RO=(
-    "$HOME/.npm-packages"
 )
 
 BANNED=(
