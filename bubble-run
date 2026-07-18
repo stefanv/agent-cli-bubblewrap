@@ -9,9 +9,11 @@ Usage: $AGENT_NAME [bwrap-options] [-h] [-- <$AGENT_CLI options>]
 Run $AGENT_CLI inside a bubblewrap sandbox.
 
 Flags (place before --):
-  -y    YOLO mode (maps to: $AGENT_YOLO_FLAG)
-  -c    Continue the most recent session (maps to: $AGENT_CONTINUE_FLAG)
-  -h    Show this help
+  -y             YOLO mode (maps to: $AGENT_YOLO_FLAG)
+  -c             Continue the most recent session (maps to: $AGENT_CONTINUE_FLAG)
+  --rw <path>    Grant read-write access to <path>
+  --ro <path>    Grant read-only access to <path>
+  -h             Show this help
 
 Any bwrap flags (e.g. --unsetenv, --bind) may also be placed before --.
 Everything after -- is passed as-is to $AGENT_CLI.
@@ -28,9 +30,13 @@ specific variables from the sandbox, pass bwrap flags via bubble-run:
 EOF
     else
         cat <<EOF
-Usage: bubble-run [bwrap-options] -- <command> [args]
+Usage: bubble-run [bwrap-options] [--rw <path>] [--ro <path>] -- <command> [args]
 
 Low-level bwrap wrapper. Prefer claude-bubble, gemini-bubble, etc. for agent use.
+
+Flags (place before --):
+  --rw <path>    Grant read-write access to <path>
+  --ro <path>    Grant read-only access to <path>
 
 Default sandbox:
   Read-write: \$PWD, \$HOME/.npm
@@ -139,6 +145,12 @@ while [[ $# -gt 0 ]]; do
                 CMD_FLAGS+=("-c")
             fi
             shift ;;
+        --rw) path="$(realpath -m "$2")"
+              ALLOW_RW_ARGS+=(--bind "$path" "$path")
+              shift 2 ;;
+        --ro) path="$(realpath -m "$2")"
+              ALLOW_RO_ARGS+=(--ro-bind "$path" "$path")
+              shift 2 ;;
         --) shift; break ;;
         *) BWRAP_PASSTHROUGH+=("$1"); shift ;;
     esac

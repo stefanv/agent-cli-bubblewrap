@@ -13,12 +13,14 @@ The end-user-scripts are:
 ## Usage
 
 ```
-claude-bubble [bwrap-options] [-y|c|h] [-- <claude-options>]
-gemini-bubble [bwrap-options] [-y|c|h] [-- <gemini-options>]
+claude-bubble [bwrap-options] [-y|c|h] [--rw <path>] [--ro <path>] [-- <claude-options>]
+gemini-bubble [bwrap-options] [-y|c|h] [--rw <path>] [--ro <path>] [-- <gemini-options>]
 ```
 
 - `-y`: YOLO mode; auto-approve all actions, no confirmation prompts.
 - `-c`: Continue; resume the most recent conversation/session.
+- `--rw <path>`: Grant read-write access to `<path>`.
+- `--ro <path>`: Grant read-only access to `<path>`.
 - `-h`: Show help.
 
 Any [bwrap](https://github.com/containers/bubblewrap) flags placed before `--` are forwarded directly to bwrap.
@@ -30,6 +32,8 @@ claude-bubble -y
 claude-bubble -c
 claude-bubble -y -c
 claude-bubble --unsetenv GITHUB_TOKEN -y
+claude-bubble --ro ..
+claude-bubble --rw ../shared-data -y
 gemini-bubble -y -- --model gemini-2.0-flash
 ```
 
@@ -54,7 +58,14 @@ The scripts contain the following variables, which determine access rights:
 By default, we give full access to the current directory minus `.env`,
 as well as read access to files needed by each agent to function.
 
-You can extend these ACL lists by setting `AGENT_BUBBLE_*` environment
+For one-off access to an extra path, pass `--rw <path>` or `--ro <path>`
+on the command line:
+
+```sh
+claude-bubble --ro ..
+```
+
+To extend the ACLs for every invocation, set `AGENT_BUBBLE_*` environment
 variables (e.g. in your `~/.bashrc`):
 
 ```sh
