@@ -108,14 +108,18 @@ BANNED=(
     ".env.production"
 )
 
-ALLOW_RW_ARGS=()
-for item in "${ALLOW_RW[@]}"; do
-    ALLOW_RW_ARGS+=(--bind "$item" "$item")
-done
-
-ALLOW_RO_ARGS=()
+# All binds go into a single ordered list. bwrap layers later binds on top
+# of earlier ones, so whichever bind for an overlapping path comes last wins.
+# RO defaults are emitted first, then RW defaults (so a read-write path nested
+# inside a read-only default wins), then command-line --rw/--ro flags in the
+# order given (so an explicit flag can override a default, and a later flag can
+# turn an earlier RW path back into RO).
+BIND_ARGS=()
 for item in "${ALLOW_RO[@]}"; do
-    ALLOW_RO_ARGS+=(--ro-bind "$item" "$item")
+    BIND_ARGS+=(--ro-bind "$item" "$item")
+done
+for item in "${ALLOW_RW[@]}"; do
+    BIND_ARGS+=(--bind "$item" "$item")
 done
 
 if [[ -n "$AGENT_BUBBLE_BANNED" ]]; then
@@ -146,10 +150,10 @@ while [[ $# -gt 0 ]]; do
             fi
             shift ;;
         --rw) path="$(realpath -m "$2")"
-              ALLOW_RW_ARGS+=(--bind "$path" "$path")
+              BIND_ARGS+=(--bind "$path" "$path")
               shift 2 ;;
         --ro) path="$(realpath -m "$2")"
-              ALLOW_RO_ARGS+=(--ro-bind "$path" "$path")
+              BIND_ARGS+=(--ro-bind "$path" "$path")
               shift 2 ;;
         --) shift; break ;;
         *) BWRAP_PASSTHROUGH+=("$1"); shift ;;
@@ -158,8 +162,7 @@ done
 CMD="$1"; shift
 
 exec bwrap \
-     "${ALLOW_RW_ARGS[@]}" \
-     "${ALLOW_RO_ARGS[@]}" \
+     "${BIND_ARGS[@]}" \
      --tmpfs /tmp \
      --proc /proc \
      --dev /dev \
